@@ -8,9 +8,6 @@ def main():
     printRules()
     generatePlayers()
     
-
-
-    
     
 
 def printRules() -> None:
@@ -53,6 +50,9 @@ def generatePlayers()-> list:
     for names in nameOfPlayers:
         #Pass in attributes
         listOfPlayers+= player.Player()
+
+def printBoard() -> None:
+    pass
 
 
     
