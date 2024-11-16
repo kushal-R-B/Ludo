@@ -1,6 +1,6 @@
 
 class Player():
 
-    def __init__(self):
-        #Write player attributes
+    def __init__(self,name:str):
+        #Write player attributes 
         pass
