@@ -14,7 +14,16 @@ class board:
         
         self.currentPlayer = firstTurnPlayer
 
-        #A board to represent the game.
+        #A board to represent the game. Indexes represent whose territory it is, so 0 is firstPlayer, 1 is secondPlayer
+        #First index of each list corresponds to the top right of the territory. Index 6 is special becase it is the first
+        #chance to make it to home.
+        board = [
+            #0,   1   2   3   4   5   6   7   8   9   10  11  12 
+            [" "," "," "," "," "," "," "," "," "," "," "," "," "],
+            [" "," "," "," "," "," "," "," "," "," "," "," "," "],
+            [" "," "," "," "," "," "," "," "," "," "," "," "," "],
+            [" "," "," "," "," "," "," "," "," "," "," "," "," "],
+        ]
 
     def rollDice() -> int:
         return random.randint(1,6)
