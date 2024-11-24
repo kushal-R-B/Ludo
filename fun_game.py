@@ -31,10 +31,10 @@ def main():
         
         if(not(currentPlayer.isAllPiecesActive()) and (diceRoll == 1 or diceRoll == 6) ):
             print("Would you like to activate a piece?")
-            response = input("Y/N: ")
+            userInput = input("Y/N: ")
             
             #Activate a piece
-            if(response == "Y"):
+            if(userInput == "Y"):
                 ludoBoard.activatePiece()
             #If they don't want to activate a piece, then ask them to move a piece.
             else:
@@ -94,7 +94,6 @@ def printCommands():
 
 def generatePlayers()-> tuple:
     '''Creates instances of players, with the name and index number passed in as parameters.
-
     Returns
     -------
     tuple
@@ -121,9 +120,6 @@ def printBoard(boardP:'Board') -> None:
     boardP : Board
         Takes in the board with the spaces that it belongs with
     '''
-    #boardP.mainBoard -> this is a reference to the main board pieces (the one that all pieces share)
-    #boardP.homeSpace
-    #boardP.heavenSpace
     print(f'      {boardP.mainBoard[0][7]}{boardP.mainBoard[0][6]}{boardP.mainBoard[0][5]}      ')
     print(f'   {boardP.homeSpace[1][0]}  {boardP.mainBoard[0][8]}{boardP.heavenSpace[0][0]}{boardP.mainBoard[0][4]}  {boardP.homeSpace[0][0]}   ')
     print(f'  {boardP.homeSpace[1][1]} {boardP.homeSpace[1][2]} {boardP.mainBoard[0][9]}{boardP.heavenSpace[0][1]}{boardP.mainBoard[0][3]} {boardP.homeSpace[0][1]} {boardP.homeSpace[0][2]}  ')
@@ -251,12 +247,13 @@ class Board:
                 if("*" in self.mainBoard[self.currentPlayer.index][5]):
                     self.mainBoard[self.currentPlayer.index][5] = ""
 
-                self.mainBoard[self.currentPlayer.index][5] = p
+                self.mainBoard[self.currentPlayer.index][5] += self.currentPlayer.symbol
                 break
     
     def move(self,diceRoll:int,pieceToMove:int):
-        #TODO
-        pieceToMove = self.currentPlayer.getPiece(pieceToMove)
+        pieceMove = self.currentPlayer.getPiece(pieceToMove)
+        location = pieceMove.location.split("-") #splits on the - so that it can idenitfy which board,
+        print("Hello")
 
 
 #playerModule--------------------------------------------------------------------------------------------------------------------------------------
@@ -294,10 +291,10 @@ class Player():
         self.name = name
         
         #Intialize all the pieces from 0 to 3:
-        self.piece1 = Pieces(name,0)
-        self.piece2 = Pieces(name,1)
-        self.piece3 = Pieces(name,2)
-        self.piece4 = Pieces(name,3)
+        self.piece1 = Pieces(self,0)
+        self.piece2 = Pieces(self,1)
+        self.piece3 = Pieces(self,2)
+        self.piece4 = Pieces(self,3)
 
         self.score = 0
 
@@ -375,18 +372,27 @@ class Pieces():
         #Stores what number piece it is.
         self.number = number
 
-        #Stores the location, so it starts a the players home index, with the assigned number
+        #Stores the location, so it starts a the players home index, with the assigned number of the piece being 
+        # its index piece
         self.location = f"Home-{player.index}-{number}"
         
 
-        #Define a custom print for a piece object.
-    def __str__(self):
-        return f"{self.player.symbol}"
-        
-    def activatePiece(self) -> None:
-        '''Changes the activity of the piece to true.
-        '''
+    
+    # Define a custom print by calling the self.player
+    def __str__(self): 
+        return f"{self.player.symbol}" 
+    
+    def activatePiece(self) -> None: 
+        '''Changes the activity of the piece to true.''' 
         self.activity = True
+        
+    
+        # apend to document player # has # piece in heaven
+
+# def writeLog():
+#     '''Collects the data about the player and adds to file called game_log'''
+#     open('game_log.txt', 'w')
+#     if()
         
                 
 

@@ -32,12 +32,47 @@ class Player():
         self.name = name
         
         #Intialize all the pieces:
-        self.piece1 = Pieces(name,1)
-        self.piece2 = Pieces(name,2)
-        self.piece3 = Pieces(name,3)
-        self.piece4 = Pieces(name,4)
+        self.piece1 = Pieces(name,0)
+        self.piece2 = Pieces(name,1)
+        self.piece3 = Pieces(name,2)
+        self.piece4 = Pieces(name,3)
 
         self.score = 0
+
+        self.piecesActivated = 0
+
+    def getPieces(self) -> tuple:
+        '''Returns a tuple with the players current pieces
+
+        Returns
+        -------
+        tuple
+            A tuple consisting of all the player's pieces.
+        '''
+        return self.piece1, self.piece2, self.piece3, self.piece4
+    
+    def getPiece(self,num:int) -> 'Pieces':
+        piecesTuple = self.getPieces()
+
+        for p in piecesTuple:
+            if p.number == num:
+                return p
+    
+            
+    
+    def isAllPiecesActive(self) -> bool:
+        '''Returns if the player's pieces are activated yet.
+
+        Returns
+        -------
+        bool
+            Returns true if all the players pieces are activated.
+        '''
+
+        if(self.piece1.activity and self.piece2.activity and self.piece3.activity and self.piece4.activity):
+            return True
+        else:
+            return False
 
 
 class Pieces():
@@ -57,10 +92,23 @@ class Pieces():
 
         #Stores whether the piece is active or not 
         #(you need to roll a specific number to activate a piece)
-        self.isActive = False
+        self.activity = False
 
         #Stores which player the piece belongs to.
         self.player = player
+        
 
         #Stores what number piece it is.
         self.number = number
+
+        #Stores the location, so it starts a the players home index, with the assigned number
+        self.location = f"Home-{player.index}-{number}"
+
+
+        #Define a custom print for a piece object.
+    def __str__(self):
+        return f"{self.player.symbol}"
+        
+    def activatePiece(self) -> None:
+        self.activity = True
+
