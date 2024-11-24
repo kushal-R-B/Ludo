@@ -1,12 +1,19 @@
-import board
-import player
+from boardModule import Board
+from random import randint
 
 
-
+NUMHEAVENSPACES = 58
 
 def main():
     printRules()
-    generatePlayers()
+
+    #Generate the players as tuple and return that to be assigned to the board
+    #generatePlayers()
+
+    #Pass in the players as parameters
+    ludoBoard = Board()
+
+    #for loop to iterate through the game
     
     
 
@@ -41,30 +48,31 @@ def printRules() -> None:
     print("The first player to get all four tokens into their home area wins the game.")
 
 def generatePlayers()-> list:
-    nameOfPlayers = input("Names of the players seperated by commas (minimum 2 and max 4)? : ").split(",")
-
-    while(2 < len(nameOfPlayers) < 4):
-        nameOfPlayers = input(" Invalid. Names of the players seperated by commas (minimum 2 and max 4)? : ").split(",")
-    
-    listOfPlayers = []
-    for names in nameOfPlayers:
-        #Pass in attributes
-        listOfPlayers+= player.Player()
-
-def printBoard() -> None:
     pass
+   #generate on 4 players
+
+def printBoard(boardP:Board) -> None:
+    #boardP.mainBoard -> this is a reference to the main board pieces (the one that all pieces share)
+    #boardP.homeSpace
+    #boardP.heavenSpace
+    print(f'      {boardP.mainBoard[0][7]}{boardP.mainBoard[0][6]}{boardP.mainBoard[0][5]}      ')
+    print(f'   {boardP.homeSpace[1][0]}  {boardP.mainBoard[0][8]}{boardP.heavenSpace[0][0]}{boardP.mainBoard[0][4]}  {boardP.homeSpace[0][0]}   ')
+    print(f'  {boardP.homeSpace[1][1]} {boardP.homeSpace[1][2]} {boardP.mainBoard[0][9]}{boardP.heavenSpace[0][1]}{boardP.mainBoard[0][3]} {boardP.homeSpace[0][1]} {boardP.homeSpace[0][2]}  ')
+    print(f'   {boardP.homeSpace[1][3]}  {boardP.mainBoard[0][10]}{boardP.heavenSpace[0][2]}{boardP.mainBoard[0][2]}  {boardP.homeSpace[0][3]}   ')
+    print(f'      {boardP.mainBoard[0][11]}{boardP.heavenSpace[0][4]}{boardP.mainBoard[0][1]}      ')
+    print(f'      {boardP.mainBoard[0][12]}{boardP.mainBoard}')
+    print(boardP.mainBoard[0][2])
+
+    print(f'  {boardP.homeSpace[2][1]} {boardP.homeSpace[2][2]} {boardP.mainBoard[2][3]}{boardP.heavenSpace[2][1]}{boardP.mainBoard[2][9]} {boardP.homeSpace[3][1]} {boardP.homeSpace[3][2]}')
+    print(f'   {boardP.homeSpace[2][3]}  {boardP.mainBoard[2][4]}{boardP.heavenSpace[2][0]}{boardP.mainBoard[2][8]}  {boardP.homeSpace[3][3]}   ')
+    print(f'      {boardP.mainBoard[2][5]}{boardP.mainBoard[2][6]}{boardP.mainBoard[2][7]}      ')
+
+
+def rollDice() -> int:
+        return randint(1,6)
+    
 
 
     
-
-    
-    
-
-    
-
-
-
-
-
 if __name__ == "__main__":
     main()
