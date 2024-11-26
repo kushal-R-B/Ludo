@@ -27,6 +27,7 @@ def main():
     userInput = ""
 
     while True:
+        
         currentPlayer = ludoBoard.currentPlayer
         piecesTup = currentPlayer.getPieces()
         
