@@ -1,7 +1,7 @@
 
 from random import randint
 
-NUMTOHEAVENSPACES = 58
+NUMTOHEAVENSPACES = 52
 
 def main():
     '''Ran as the main script of the program.
@@ -16,39 +16,79 @@ def main():
     player1, player2, player3,player4 = generatePlayers()
     #Pass in the players as parameters
     ludoBoard = Board(player1,player2,player3,player4)
-   
+    # dictionary to keep track of player scores
+    player_score = {
+        player1.name: player1.score,
+        player2.name: player2.score,
+        player3.name: player3.score,
+        player4.name: player4.score
+    }
     #for loop to iterate through the game
     userInput = ""
 
-    while(not(userInput =="stop")):
+    while True:
         currentPlayer = ludoBoard.currentPlayer
         piecesTup = currentPlayer.getPieces()
         
         print(f"{currentPlayer.name}'s turn!")
         diceRoll = rollDice()
-    
+        
         print(f"The dice landed on {diceRoll}")
         
-        if(not(currentPlayer.isAllPiecesActive()) and (diceRoll == 1 or diceRoll == 6) ):
-            print("Would you like to activate a piece?")
-            userInput = input("Y/N: ")
-            
-            #Activate a piece
-            if(userInput == "Y"):
-                ludoBoard.activatePiece()
-            #If they don't want to activate a piece, then ask them to move a piece.
+        if currentPlayer.score < 4:
+            if (not currentPlayer.isAllPiecesActive() and (diceRoll == 1 or diceRoll == 6)):
+                print("Would you like to activate a piece?")
+                userInput = input("Y/N: ")
+
+                if userInput.lower() == "stop":
+                    break
+                
+                # Activate a piece
+                if userInput.lower() == "y":
+                    ludoBoard.activatePiece()
+                # If they don't want to activate a piece, then ask them to move a piece from their active ones
+                else:
+                    activePieces = currentPlayer.getActivePieces()
+                    for p in activePieces:
+                        print(f"Piece {p.number}: ")
+                    # Takes the piece that you want to move
+                    userInput = input("What piece would you like to move?: ")
+                    if userInput.lower() == "stop":
+                        break
+                    # Now ask the board to move
+                    ludoBoard.move(diceRoll, int(userInput))
             else:
-                pass
-        #All the pieces they have been activated, then don't ask them to activate and instead move on to move.
-        elif(currentPlayer.piecesActivated > 0):
-            input("What piece would you like to move?")
-            for p in piecesTup:
-                if(p.activity == True):
-                    print(f"{p.number}")
-        
-        
+                if currentPlayer.piecesActivated > 0:
+                    activePieces = currentPlayer.getActivePieces()
+                    for p in activePieces:
+                        print(f"Piece {p.number}")
+                    # Takes the piece that you want to move
+                    userInput = input("What piece would you like to move?: ")
+                    if userInput.lower() == "stop":
+                        break
+                    # Now ask the board to move
+                    ludoBoard.move(diceRoll, int(userInput))
+                else:
+                    print("No pieces to move. Rolling again.")
+                    ludoBoard.setNextPlayerTurn()
+                #    continue
+
+        # Ensure the turn switches to the next player
         ludoBoard.setNextPlayerTurn()
         printBoard(ludoBoard)
+
+        if userInput.lower() == "stop":
+            break
+
+
+    
+
+
+    #Iterate through all players and add them
+    print("Game Over!, Check final_score.txt")
+    player_score[currentPlayer.name] = currentPlayer.score
+    writefinalscore([player1,player2,player3,player4])
+        
             
 
 def printRules() -> None:
@@ -90,7 +130,6 @@ def printCommands():
 
     print("\n\n")
     
-    
 
 def generatePlayers()-> tuple:
     '''Creates instances of players, with the name and index number passed in as parameters.
@@ -105,14 +144,18 @@ def generatePlayers()-> tuple:
         name2 = input("Enter Name for Player 2: ")
         name3 =input("Enter Name for Player 3: ")
         name4 = input("Enter Name for Player 4: ")
-    except:
-        if(name1 in "*^-" or name2 in "*^-" or name3 in "*^-" or name4 in "*^-"):
-            print('Name can not be the same symbol as the board.')
+        invalid_symbols = "*^-"
+        for name in [name1, name2, name3, name4]:
+            if any(symbol in name for symbol in invalid_symbols):
+                raise ValueError("Name cannot contain the symbols *, ^, or -.")
+    except ValueError:
+            print("Inalid Inputs for Character Inputs. Game Ending...")
+            exit()
 
-    return (Player(name1,0),Player(name2,1),Player(name3,2),Player(name4,3))
+    return (Player(name1,0,0),Player(name2,1,13),Player(name3,2,26),Player(name4,3,39))
 
 
-def printBoard(boardP:'Board') -> None:
+def printBoard(boardP: 'Board') -> None:
     '''Maps out the drawing of the board with the spaces that the players can land on
 
     Parameters
@@ -120,22 +163,25 @@ def printBoard(boardP:'Board') -> None:
     boardP : Board
         Takes in the board with the spaces that it belongs with
     '''
-    print(f'      {boardP.mainBoard[0][7]}{boardP.mainBoard[0][6]}{boardP.mainBoard[0][5]}      ')
-    print(f'   {boardP.homeSpace[1][0]}  {boardP.mainBoard[0][8]}{boardP.heavenSpace[0][0]}{boardP.mainBoard[0][4]}  {boardP.homeSpace[0][0]}   ')
-    print(f'  {boardP.homeSpace[1][1]} {boardP.homeSpace[1][2]} {boardP.mainBoard[0][9]}{boardP.heavenSpace[0][1]}{boardP.mainBoard[0][3]} {boardP.homeSpace[0][1]} {boardP.homeSpace[0][2]}  ')
-    print(f'   {boardP.homeSpace[1][3]}  {boardP.mainBoard[0][10]}{boardP.heavenSpace[0][2]}{boardP.mainBoard[0][2]}  {boardP.homeSpace[0][3]}   ')
-    print(f'      {boardP.mainBoard[0][11]}{boardP.heavenSpace[0][4]}{boardP.mainBoard[0][1]}      ')
-    print(f'      {boardP.mainBoard[0][12]}{boardP.heavenSpace[0][4]}{boardP.mainBoard[0][0]}      ')
-    print(f'{boardP.mainBoard[1][5]}{boardP.mainBoard[1][4]}{boardP.mainBoard[1][3]}{boardP.mainBoard[1][2]}{boardP.mainBoard[1][1]}{boardP.mainBoard[1][0]} {boardP.heavenSpace[0][5]} {boardP.mainBoard[3][12]}{boardP.mainBoard[3][11]}{boardP.mainBoard[3][10]}{boardP.mainBoard[3][9]}{boardP.mainBoard[3][8]}{boardP.mainBoard[3][7]}')
-    print(f'{boardP.mainBoard[1][6]}{boardP.heavenSpace[1][0]}{boardP.heavenSpace[1][1]}{boardP.heavenSpace[1][2]}{boardP.heavenSpace[1][3]}{boardP.heavenSpace[1][4]}{boardP.heavenSpace[1][5]} {boardP.heavenSpace[3][5]}{boardP.heavenSpace[3][4]}{boardP.heavenSpace[3][3]}{boardP.heavenSpace[3][2]}{boardP.heavenSpace[3][1]}{boardP.heavenSpace[3][0]}{boardP.mainBoard[3][6]}')
-    print(f'{boardP.mainBoard[1][7]}{boardP.mainBoard[1][8]}{boardP.mainBoard[1][9]}{boardP.mainBoard[1][10]}{boardP.mainBoard[1][11]}{boardP.mainBoard[1][12]} {boardP.heavenSpace[2][5]} {boardP.mainBoard[3][0]}{boardP.mainBoard[3][1]}{boardP.mainBoard[3][2]}{boardP.mainBoard[3][3]}{boardP.mainBoard[3][4]}{boardP.mainBoard[3][5]}')
-    print(f'      {boardP.mainBoard[2][0]}{boardP.heavenSpace[2][4]}{boardP.mainBoard[2][12]}')
-    print(f'      {boardP.mainBoard[2][1]}{boardP.heavenSpace[2][3]}{boardP.mainBoard[2][11]}      ')
-    print(f'   {boardP.homeSpace[2][0]}  {boardP.mainBoard[2][2]}{boardP.heavenSpace[2][2]}{boardP.mainBoard[2][10]}  {boardP.homeSpace[3][0]}   ')
-    print(f'  {boardP.homeSpace[2][1]} {boardP.homeSpace[2][2]} {boardP.mainBoard[2][3]}{boardP.heavenSpace[2][1]}{boardP.mainBoard[2][9]} {boardP.homeSpace[3][1]} {boardP.homeSpace[3][2]}')
-    print(f'   {boardP.homeSpace[2][3]}  {boardP.mainBoard[2][4]}{boardP.heavenSpace[2][0]}{boardP.mainBoard[2][8]}  {boardP.homeSpace[3][3]}   ')
-    print(f'      {boardP.mainBoard[2][5]}{boardP.mainBoard[2][6]}{boardP.mainBoard[2][7]}      ')
+    print(f'      {boardP.mainBoard[24]}{boardP.mainBoard[25]}{boardP.mainBoard[26]}      ')
+    print(f'   {boardP.homeSpace[1][0]}  {boardP.mainBoard[23]}{boardP.heavenSpace[0][0]}{boardP.mainBoard[27]}  {boardP.homeSpace[0][0]}   ')
+    print(f'  {boardP.homeSpace[1][1]} {boardP.homeSpace[1][2]} {boardP.mainBoard[22]}{boardP.heavenSpace[0][1]}{boardP.mainBoard[28]} {boardP.homeSpace[0][1]} {boardP.homeSpace[0][2]}  ')
+    print(f'   {boardP.homeSpace[1][3]}  {boardP.mainBoard[21]}{boardP.heavenSpace[0][2]}{boardP.mainBoard[29]}  {boardP.homeSpace[0][3]}   ')
+    print(f'      {boardP.mainBoard[20]}{boardP.heavenSpace[0][3]}{boardP.mainBoard[30]}      ')
+    print(f'      {boardP.mainBoard[19]}{boardP.heavenSpace[0][4]}{boardP.mainBoard[31]}      ')
+    print(f'{boardP.mainBoard[13]}{boardP.mainBoard[14]}{boardP.mainBoard[15]}{boardP.mainBoard[16]}{boardP.mainBoard[17]}{boardP.mainBoard[18]} {boardP.heavenSpace[0][5]} {boardP.mainBoard[32]}{boardP.mainBoard[33]}{boardP.mainBoard[34]}{boardP.mainBoard[35]}{boardP.mainBoard[36]}{boardP.mainBoard[37]}')
+    print(f'{boardP.mainBoard[12]}{boardP.heavenSpace[1][0]}{boardP.heavenSpace[1][1]}{boardP.heavenSpace[1][2]}{boardP.heavenSpace[1][3]}{boardP.heavenSpace[1][4]}{boardP.heavenSpace[1][5]} {boardP.heavenSpace[3][5]}{boardP.heavenSpace[3][4]}{boardP.heavenSpace[3][3]}{boardP.heavenSpace[3][2]}{boardP.heavenSpace[3][1]}{boardP.heavenSpace[3][0]}{boardP.mainBoard[38]}')
+    print(f'{boardP.mainBoard[11]}{boardP.mainBoard[10]}{boardP.mainBoard[9]}{boardP.mainBoard[8]}{boardP.mainBoard[7]}{boardP.mainBoard[6]} {boardP.heavenSpace[2][5]} {boardP.mainBoard[44]}{boardP.mainBoard[43]}{boardP.mainBoard[42]}{boardP.mainBoard[41]}{boardP.mainBoard[40]}{boardP.mainBoard[39]}')
+    print(f'      {boardP.mainBoard[5]}{boardP.heavenSpace[2][4]}{boardP.mainBoard[45]}')
+    print(f'      {boardP.mainBoard[4]}{boardP.heavenSpace[2][3]}{boardP.mainBoard[46]}      ')
+    print(f'   {boardP.homeSpace[2][0]}  {boardP.mainBoard[3]}{boardP.heavenSpace[2][2]}{boardP.mainBoard[47]}  {boardP.homeSpace[3][0]}   ')
+    print(f'  {boardP.homeSpace[2][1]} {boardP.homeSpace[2][2]} {boardP.mainBoard[2]}{boardP.heavenSpace[2][1]}{boardP.mainBoard[48]} {boardP.homeSpace[3][1]} {boardP.homeSpace[3][2]}')
+    print(f'   {boardP.homeSpace[2][3]}  {boardP.mainBoard[1]}{boardP.heavenSpace[2][0]}{boardP.mainBoard[49]}  {boardP.homeSpace[3][3]}   ')
+    print(f'      {boardP.mainBoard[0]}{boardP.mainBoard[51]}{boardP.mainBoard[50]}      ')
 
+
+
+    
 
 def rollDice() -> int:
     '''_summary_
@@ -147,12 +193,11 @@ def rollDice() -> int:
     '''
     return randint(1,6)
     
-    
 
 #boardModule--------------------------------------------------------------------------------------------------------------------------------
 class Board:
-    def __init__(self, player1:'Player',player2:'Player',player3:'Player',player4:'Player'):
-        '''Takes a reference of all 4 players. Whatever players name is inputed first is the first player. The boards are intialized and assigned
+    def __init__(self, player1: 'Player', player2: 'Player', player3: 'Player', player4: 'Player'):
+        '''Takes a reference of all 4 players. Whatever players name is inputed first is the first player. The boards are initialized and assigned
         as attributes of the board class.
 
         Parameters
@@ -174,38 +219,22 @@ class Board:
         
         self.currentPlayer = player1
 
-        #A board to represent the game. Indexes represent whose territory it is, so 0 is firstPlayer, 1 is secondPlayer,etc.
-        #* represents an empty space on the board
-        mainBoard = [
-            #0,   1   2   3   4   5   6   7   8   9   10  11  12 
-            ["*","*","*","*","*","*","*","*","*","*","*","*","*"],
-            ["*","*","*","*","*","*","*","*","*","*","*","*","*"],
-            ["*","*","*","*","*","*","*","*","*","*","*","*","*"],
-            ["*","*","*","*","*","*","*","*","*","*","*","*","*"],
-        ]
-        self.mainBoard = mainBoard
+        # A board to represent the game. Indexes represent whose territory it is, so 0 is firstPlayer, 1 is secondPlayer, etc.
+        # * represents an empty space on the board
 
-        
-        homeSpace = [
-            #Player 0
-            ["^","^","^","^"],
-            #Player 1
-            ["^","^","^","^"],
-            #Player 2
-            ["^","^","^","^"],
-            #Player 3
-            ["^","^","^","^"],
-        ]
-        self.homeSpace = homeSpace
-
-        heavenSpace = [
-            ["-","-","-","-","-","-"],
-            ["-","-","-","-","-","-"],
-            ["-","-","-","-","-","-"],
-            ["-","-","-","-","-","-"]
+        # Manually initialize the mainBoard list with 52 elements
+        self.mainBoard = [
+            "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*",
+            "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*",
+            "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*",
+            "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*", "*",
+            "*", "*", "*", "*"
         ]
 
-        self.heavenSpace = heavenSpace
+        # Example initialization for homeSpace and heavenSpace
+        self.homeSpace = [["^"] * 4 for _ in range(4)]
+        self.heavenSpace = [["-"] * 6 for _ in range(4)]
+
 
         spaces = {'p1': player1, 'p2':player2, 'p3': player3, 'p4': player4}
         self.spaces = spaces
@@ -238,27 +267,82 @@ class Board:
             
 
     def activatePiece(self)-> None:
-        '''Activates a piece by using the reference of currentPlayer
+        '''Activates a  single piece by using the reference of currentPlayer
         '''
         for p in self.currentPlayer.getPieces():
             if not (p.activity):
                 p.activity = True
+                self.currentPlayer.piecesActivated+=1
                 #Each starts at their own list for their given index,t index 5 in that list
-                if("*" in self.mainBoard[self.currentPlayer.index][5]):
-                    self.mainBoard[self.currentPlayer.index][5] = ""
-
-                self.mainBoard[self.currentPlayer.index][5] += self.currentPlayer.symbol
+                if("*" in self.mainBoard[self.currentPlayer.startIndex]):
+                    self.mainBoard[self.currentPlayer.startIndex] = self.currentPlayer.symbol
+                else:
+                    self.mainBoard[self.currentPlayer.index] += self.currentPlayer.symbol
+                    
                 break
     
-    def move(self,diceRoll:int,pieceToMove:int):
-        pieceMove = self.currentPlayer.getPiece(pieceToMove)
-        location = pieceMove.location.split("-") #splits on the - so that it can idenitfy which board,
-        print("Hello")
+    def move(self, diceRoll: int, numberPieceToMove: int):
+        curPiece = self.currentPlayer.getPiece(numberPieceToMove)
+        curPlayersPiece = self.currentPlayer.getPieces()
 
+        for i in range(diceRoll):
+            curPiece.stepCount += 1
+
+            # Check if the piece should move to heaven
+            if curPiece.stepCount >= NUMTOHEAVENSPACES and not curPiece.isInHeaven:
+                self.heavenSpace[self.currentPlayer.index][0] = self.currentPlayer.symbol
+                curPiece.isInHeaven = True
+                curPiece.stepCount = 0  # Reset step count for heaven
+
+            # Determine the next position on the main board
+            nextPosition = curPiece.indexInMainBoard + 1
+
+            # Handle wrapping around the board
+            if nextPosition >= len(self.mainBoard):
+                nextPosition -= len(self.mainBoard)
+
+            charactersAhead = self.mainBoard[nextPosition]
+
+            # Move the piece one step on the board visually
+            if self.currentPlayer.symbol in charactersAhead:
+                self.mainBoard[nextPosition] += self.currentPlayer.symbol
+            else:
+                self.mainBoard[nextPosition] = self.currentPlayer.symbol
+
+            # Handle the removal of other pieces
+            if "*" not in charactersAhead and not curPiece.isInHeaven and self.currentPlayer.symbol not in charactersAhead:
+                temp = self.getPlayerList()
+                tempPlayer = None
+                for playah in temp:
+                    if playah.symbol in charactersAhead:
+                        tempPlayer = playah
+                        break
+
+                playahsPieces = tempPlayer.getPieces()
+                for p in playahsPieces:
+                    if p.indexInMainBoard == nextPosition:
+                        p.indexInMainBoard = tempPlayer.startIndex
+                        p.stepCount = 0
+                        p.activity = False
+
+            # Update the current piece's location
+            curPiece.indexInMainBoard = nextPosition
+
+            # Update the previous position to be empty
+            if curPiece.indexInMainBoard - 1 >= 0:
+                self.mainBoard[curPiece.indexInMainBoard - 1] = "*"
+
+        # Check if the piece has scored
+        if curPiece.isInHeaven and curPiece.stepCount % 6 == 0:
+            self.currentPlayer.score += 1
+            self.currentPlayer.pieces.remove(curPiece)
+            del curPiece
+
+                
 
 #playerModule--------------------------------------------------------------------------------------------------------------------------------------
 class Player():
-    def __init__(self,name:str,index:int):
+    def __init__(self,name:str,index:int,startIndex:int):
         '''Intializes the object of Player Class with the name of the player
         the index corresponding to the list of that player's territory within the matrix,
         the player's pieces, and the score (number of pieces in heaven)
@@ -268,7 +352,9 @@ class Player():
         name : str
             Name of the player.
         index : int
-            An integer describing what the int of the list is.
+            An integer describing what the int of the heaven list the pieces of that player should go to.
+        startIndex: int
+            An integer that descibes the index that the piece should be sent if activated.
         
         Attributes
         ----------
@@ -279,35 +365,78 @@ class Player():
             count
         piecesActivated: int
             Stores the number of pieces activated
+        index : int
+            An integer describing what the int of the heaven list the pieces of that player should go to.
+        startIndex: int
+            An integer that descibes the index that the piece should be sent if activated.
 
         '''
         #Symbol
         self.symbol = name[0]
 
-        #Assings the terriorty number, an integer from 0 to 3
+        #Assings the terriorty number, an integer from 0 to 3 which assigns their heavens
         self.index = index
     
         #Player names
         self.name = name
         
-        #Intialize all the pieces from 0 to 3:
-        self.piece1 = Pieces(self,0)
-        self.piece2 = Pieces(self,1)
-        self.piece3 = Pieces(self,2)
-        self.piece4 = Pieces(self,3)
+        #Intialize all the pieces from 1 to 4:
+        self.piece1 = Pieces(self,1,startIndex)
+        self.piece2 = Pieces(self,2,startIndex)
+        self.piece3 = Pieces(self,3,startIndex)
+        self.piece4 = Pieces(self,4,startIndex)
 
+        #Numbe of pieces scored
         self.score = 0
 
+        #Start index
+        self.startIndex = startIndex
+
+        #Number of piecesActivated
         self.piecesActivated = 0
-    def getPieces(self) -> tuple:
+    
+    def score_piece(self, piece) ->None: 
+        '''Deletes a piece once it scores.
+
+        Parameters
+        ----------
+        piece : Pieces
+            Pass in the piece to delete.
+        '''
+        self.pieces.remove(piece) 
+        del piece
+
+    def getPieces(self) -> list:
         '''Returns a tuple with the players current pieces
 
         Returns
         -------
-        tuple
-            A tuple consisting of all the player's pieces.
+        list
+            A list consisting of all the player's pieces, checks if the piece has been deleted before
+            adding to return list.
         '''
-        return self.piece1, self.piece2, self.piece3, self.piece4
+        temp = []
+
+        if not self.piece1 == None:
+            temp+=[self.piece1]
+        if not self.piece2 == None:
+            temp+=[self.piece2]
+        if not (self.piece3 == None):
+            temp+=[self.piece3]
+        if not self.piece4 == None :
+            temp+=[self.piece4]
+        
+        return temp
+    
+    def getActivePieces(self) -> list:
+        temp = self.getPieces()
+        temp2 = []
+        for p in temp:
+            if p.activity == True:
+                temp2+= [p]
+        
+        return temp2
+
     
     def getPiece(self,num:int) -> 'Pieces':
         '''Gets a piece based off the number input.
@@ -331,29 +460,51 @@ class Player():
             
     
     def isAllPiecesActive(self) -> bool:
-        '''Returns if the player's pieces are activated yet.
+        '''Returns if all the player's pieces are active
 
         Returns
         -------
         bool
             Returns true if all the players pieces are activated.
         '''
+        temp = self.getPieces()
+        for p in temp:
+            if p.activity == False:
+                return False
 
-        if(self.piece1.activity and self.piece2.activity and self.piece3.activity and self.piece4.activity):
-            return True
-        else:
-            return False
+        return True
+        
 
 
 class Pieces():
 
-    def __init__(self,player:Player,number:int):
+    def __init__(self,player:Player,number:int,indexInMainBoard:int):
         '''A piece on the board, that is attribute of each player. 
 
         Parameters
         ----------
         player : Player
             Takes in the reference of the player that the piece belongs to.
+        activity: bool
+            Sets the acitivity of the piece. Piece is activated by the board
+        number: int
+            Take in the number in the heaven matrix that the player owns
+        indexInMainBoard: int
+            Takes in the starting index for each player. Updated in the moved method.
+        
+        Attributes
+        ----------
+        player : Player
+            Takes in the reference of the player that the piece belongs to.
+        activity: bool
+            Sets the acitivity of the piece. Piece is activated by the board
+        number: int
+            Take in the number in the heaven matrix that the player owns
+        indexInMainBoard: int
+            Takes in the starting index for each player. Updated in the moved method.
+        isInHeaven: bool
+            Boolean value that tells wheter the piece is in heaven or not.
+        
        
         '''
         # Holds the number of steps that the piece, has, 
@@ -367,20 +518,14 @@ class Pieces():
         #Stores which player the piece belongs to.
         self.player = player
 
-        #Stores Location
-
         #Stores what number piece it is.
         self.number = number
 
-        #Stores the location, so it starts a the players home index, with the assigned number of the piece being 
-        # its index piece
-        self.location = f"Home-{player.index}-{number}"
-        
+        #Stores the location, so it starts a the players index, with the assigned number of the piece being 
+        self.indexInMainBoard = indexInMainBoard
 
-    
-    # Define a custom print by calling the self.player
-    def __str__(self): 
-        return f"{self.player.symbol}" 
+        self.isInHeaven = False
+         
     
     def activatePiece(self) -> None: 
         '''Changes the activity of the piece to true.''' 
@@ -389,13 +534,12 @@ class Pieces():
     
         # apend to document player # has # piece in heaven
 
-# def writeLog():
-#     '''Collects the data about the player and adds to file called game_log'''
-#     open('game_log.txt', 'w')
-#     if()
+def writefinalscore(players):
+    ''' writes the final score in a new file'''
+    with open("final_score.txt", "w") as file:
+        for player in players:
+            file.write(f"{player.name}: {player.score}\n") 
         
                 
-
-
 if __name__ == "__main__":
     main()
